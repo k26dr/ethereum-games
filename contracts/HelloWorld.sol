@@ -1,4 +1,4 @@
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.15; // specifies minimum Solidity version to compiler
 
 contract HelloWorld {
     address owner;
