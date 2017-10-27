@@ -1,5 +1,5 @@
 var fs = require('fs');
-var HelloWorld = artifacts.require("./HelloWorld.sol");
+var NotSoPrivateData = artifacts.require("./NotSoPrivateData.sol");
 
 module.exports = function(deployer, network) {
 
@@ -10,5 +10,5 @@ module.exports = function(deployer, network) {
         web3.personal.unlockAccount(web3.eth.accounts[0], password)
     }
 
-    deployer.deploy(HelloWorld);
+    deployer.deploy(NotSoPrivateData);
 };

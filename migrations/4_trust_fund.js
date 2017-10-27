@@ -1,5 +1,6 @@
 var fs = require('fs');
-var HelloWorld = artifacts.require("./HelloWorld.sol");
+var TrustFund = artifacts.require("./TrustFund.sol");
+var SaltyChild = artifacts.require("./SaltyChild.sol");
 
 module.exports = function(deployer, network) {
 
@@ -10,5 +11,8 @@ module.exports = function(deployer, network) {
         web3.personal.unlockAccount(web3.eth.accounts[0], password)
     }
 
-    deployer.deploy(HelloWorld);
+    var accounts = web3.eth.accounts;
+    var addresses = [accounts[2], accounts[3], accounts[4]];
+    deployer.deploy(TrustFund, addresses);
+    deployer.deploy(SaltyChild);
 };
