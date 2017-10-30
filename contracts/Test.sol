@@ -154,22 +154,97 @@ pragma solidity ^0.4.15; // specifies minimum Solidity version to compiler
 //}
 //
 //contract SaltyChild {}
-
-contract Welfare {
-    address[] recipients;
-
-    function register () {
-        recipients.push(msg.sender);
-    }
-
-    function disperse () {
-        uint balance = address(this).balance;
-        uint amount = balance / recipients.length;
-        for (uint i=0; i < recipients.length; i++) {
-            recipients[i].send(amount);
-        }
-    }
-
-    function () payable {}
-}
-    
+//
+//contract Welfare {
+//    address[] recipients;
+//
+//    function register () {
+//        recipients.push(msg.sender);
+//    }
+//
+//    function disperse () {
+//        uint balance = address(this).balance;
+//        uint amount = balance / recipients.length;
+//        for (uint i=0; i < recipients.length; i++) {
+//            recipients[i].send(amount);
+//        }
+//    }
+//
+//    function () payable {}
+//}
+//
+//contract Roulette {
+//    mapping(address => uint) public balances;
+//
+//    function betRed () payable {
+//        bool winner = (randomNumber() % 2 == 0);
+//        if (winner)
+//            balances[msg.sender] += msg.value * 2;
+//    }
+//
+//    function randomNumber() returns (uint) {
+//        // we will implement this in a later section
+//        // for now imagine it returns a number from
+//        // 0-36
+//    }
+//
+//    function withdraw () {
+//        uint amount = balances[msg.sender];
+//        balances[msg.sender] = 0;
+//        msg.sender.transfer(amount);
+//    }
+//}
+//
+//contract Roulette {
+//    function betRed () payable {
+//        bool winner = (randomNumber() % 2 == 0);
+//        if (winner)
+//            msg.sender.transfer(msg.value * 2);
+//    }
+//
+//    function randomNumber() returns (uint) {
+//        // we will implement this in a later section
+//        // for now imagine it returns a number from
+//        // 0-36
+//    }
+//}
+//
+//contract Welfare {
+//    address[] recipients;
+//    uint totalFunding;
+//    mapping(address => uint) withdrawn;
+//
+//    function register () {
+//        recipients.push(msg.sender);
+//    }
+//
+//    function () payable {
+//        totalFunding += msg.value; 
+//    }
+//
+//    function withdraw () {
+//        uint withdrawnSoFar = withdrawn[msg.sender];
+//        uint allocation = totalFunding / recipients.length;
+//        require(allocation > withdrawnSoFar);
+//
+//        uint amount = allocation - withdrawnSoFar;
+//        withdrawn[msg.sender] = allocation;
+//        msg.sender.transfer(amount);
+//    }
+//}
+//contract Marriage {
+//    address wife = address(0); // dummy address
+//    address husband = address(1); // dummy address
+//    mapping (address => uint) balances;
+//
+//    function withdraw () {
+//        uint amount = balances[msg.sender];
+//        balances[msg.sender] = 0;
+//        msg.sender.transfer(amount);
+//    }
+//
+//    function () payable {
+//        balances[wife] += msg.value / 2;
+//        balances[husband] += msg.value / 2;
+//    }
+//}
