@@ -3,3 +3,4 @@ migrations/password
 node_modules/
 contracts/bin
 package-lock.json
+password
