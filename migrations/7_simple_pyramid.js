@@ -1,5 +1,5 @@
 var fs = require('fs');
-var SimplePonzi = artifacts.require("SimplePonzi");
+var SimplePyramid = artifacts.require("SimplePyramid");
 
 module.exports = function(deployer, network) {
 
@@ -10,5 +10,5 @@ module.exports = function(deployer, network) {
         web3.personal.unlockAccount(web3.eth.accounts[0], password);
     }
 
-    deployer.deploy(SimplePonzi);
+    deployer.deploy(SimplePyramid, { value: 1e15 });
 };
