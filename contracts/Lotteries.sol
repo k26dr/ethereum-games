@@ -1,110 +1,127 @@
 pragma solidity ^0.4.18; 
 
 contract SimpleLottery {
-    enum State { Ticketing, Drawing, Complete }
+    uint public constant TICKET_PRICE = 1e16; // 0.01 ether
 
-    uint public constant TICKET_PRICE = 1e16;
-
-    address[] tickets;
-    address winner;
-    State state;
-
-    uint ticketingCloses;
-    uint drawingBlock;
+    address[] public tickets;
+    address public winner;
+    uint public ticketingCloses;
 
     function SimpleLottery (uint duration) public {
-        state = State.Ticketing;
         ticketingCloses = now + duration;
     }
 
-    function buy () payable public {
-        require(msg.value == 1e16); // 0.01 ether
-        require(state == State.Ticketing);
+    function buy () public payable {
+        require(msg.value == TICKET_PRICE); 
         require(now < ticketingCloses);
 
         tickets.push(msg.sender);
     }
 
-    function closeTicketing () public {
-        require(state == State.Ticketing);
-
-        if (now > ticketingCloses) {
-            state = State.Drawing;
-            drawingBlock = block.number + 2;
-        }
-    }
-
     function drawWinner () public {
-        require(state == State.Drawing);
-        require(block.number >= drawingBlock);
+        require(now > ticketingCloses + 5 minutes);
+        require(winner == address(0));
 
-        bytes32 rand = keccak256(block.blockhash(block.number-1));
-        uint randint = uint(rand);
-        winner = tickets[randint % tickets.length];
-
-        state = State.Complete;
+        bytes32 rand = keccak256(
+            block.blockhash(block.number-1)
+        );
+        winner = tickets[uint(rand) % tickets.length];
     }
+
 
     function withdraw () public {
-        require(state == State.Complete);
         require(msg.sender == winner);
         msg.sender.transfer(this.balance);
+    }
+
+    function () payable public {
+        buy();
     }
 }
 
 
 
 contract RecurringLottery {
-    enum State { Ticketing, Drawing, Complete }
+    struct Round {
+        uint endBlock;
+        uint drawBlock;
+        Entry[] entries;
+        uint totalQuantity;
+        address winner;
+    }
+    struct Entry {
+        address buyer;
+        uint quantity;
+    }
 
-    uint constant public TICKET_PRICE = 1e16;
+    uint constant public TICKET_PRICE = 1e15;
 
-    address[] tickets;
-    State public state;
-    uint public ticketingCloses;
+    mapping(uint => Round) public rounds;
     uint public round;
-    uint duration;
+    uint public duration;
     mapping (address => uint) public balances;
 
-    // duration is the length of the ticketing period
-    // in seconds
+    // duration is in blocks. 1 day = ~5500 blocks
     function RecurringLottery (uint _duration) public {
-        state = State.Ticketing;
         duration = _duration;
-        ticketingCloses = now + duration;
         round = 1;
+        rounds[round].endBlock = block.number + duration;
+        rounds[round].drawBlock = block.number + duration + 5;
     }
 
     function buy () payable public {
-        require(msg.value == TICKET_PRICE);
-        require(state == State.Ticketing);
+        require(msg.value % TICKET_PRICE == 0);
 
-        if (now > ticketingCloses)
-            state = State.Drawing;
-        else 
-            tickets.push(msg.sender);
+        if (block.number > rounds[round].endBlock) {
+            round += 1;
+            rounds[round].endBlock = block.number + duration;
+            rounds[round].drawBlock = block.number + duration + 5;
+        }
+
+        uint quantity = msg.value / TICKET_PRICE;
+        Entry memory entry = Entry(msg.sender, quantity);
+        rounds[round].entries.push(entry);
+        rounds[round].totalQuantity += quantity;
     }
 
-    function drawWinner () public {
-        require(state == State.Drawing);
+    function drawWinner (uint roundNumber) public {
+        Round storage drawing = rounds[roundNumber];
+        require(drawing.winner ==  address(0));
+        require(block.number > drawing.drawBlock);
+        require(drawing.entries.length > 0);
 
-        bytes32 rand = keccak256(block.blockhash(block.number-1));
-        uint randint = uint(rand);
-
-        address winner = tickets[randint % tickets.length];
-        balances[winner] += TICKET_PRICE * tickets.length;
-
-        // reset lottery
-        state = State.Ticketing;
-        ticketingCloses = now + duration;
-        tickets.length = 0;
-        round += 1;
+        // pick winner
+        bytes32 rand = keccak256(
+            block.blockhash(drawing.drawBlock)
+        );
+        uint counter = uint(rand) % drawing.totalQuantity;
+        for (uint i=0; i < drawing.entries.length; i++) {
+            uint quantity = drawing.entries[i].quantity;
+            if (quantity > counter) {
+                drawing.winner = drawing.entries[i].buyer;
+                break;
+            }
+            else
+                counter -= quantity;
+        }
+        
+        balances[drawing.winner] += TICKET_PRICE * drawing.totalQuantity;
     }
 
     function withdraw () public {
         uint amount = balances[msg.sender];
         balances[msg.sender] = 0;
         msg.sender.transfer(amount);
+    }
+
+    function deleteRound (uint _round) public {
+        require(block.number > rounds[_round].drawBlock + 100);
+        require(rounds[_round].winner != address(0));
+        delete rounds[_round];
+    }
+
+    function () payable public {
+        buy();
     }
 }
 
@@ -209,7 +226,7 @@ contract Powerball {
             uint numberDraw = uint(rand) % MAX_NUMBER + 1;
             rounds[_round].winningNumbers[i] = numberDraw;
         }
-        rand = keccak256(block.blockhash(drawBlock), 5);
+        rand = keccak256(block.blockhash(drawBlock), uint(5));
         uint powerballDraw = uint(rand) % MAX_POWERBALL_NUMBER + 1;
         rounds[_round].winningNumbers[5] = powerballDraw;
     }
