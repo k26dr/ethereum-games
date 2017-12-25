@@ -131,30 +131,30 @@ pragma solidity ^0.4.15; // specifies minimum Solidity version to compiler
 //        receiver.transfer(balance);
 //    }
 //}
-//contract TrustFund {
-//    address[3] public children;
-//
-//    function TrustFund (address[3] _children) {
-//        children = _children;
-//    }
-//
-//    function updateAddress(uint child, address newAddress) {
-//        require(msg.sender == children[child]);
-//        children[child] = newAddress;
-//    }
-//
-//    function disperse () {
-//        uint balance = address(this).balance;
-//        children[0].send(balance / 2);
-//        children[1].send(balance / 4);
-//        children[2].send(balance / 4);
-//    }
-//
-//    function () payable {}
-//}
-//
-//contract SaltyChild {}
-//
+contract TrustFund {
+    address[3] public children;
+
+    function TrustFund (address[3] _children) public {
+        children = _children;
+    }
+
+    function updateAddress(uint child, address newAddress) public {
+        require(msg.sender == children[child]);
+        children[child] = newAddress;
+    }
+
+    function disperse () public {
+        uint balance = address(this).balance;
+        children[0].send(balance / 2);
+        children[1].send(balance / 4);
+        children[2].send(balance / 4);
+    }
+
+    function () payable public {}
+}
+
+contract SaltyChild {}
+
 //contract Welfare {
 //    address[] recipients;
 //
