@@ -195,41 +195,48 @@ contract Powerball {
         uint endTime;
         uint drawBlock;
         uint[6] winningNumbers;
+        mapping(address => uint[6][]) tickets;
     }
 
     uint public constant TICKET_PRICE = 2e15;
     uint public constant MAX_NUMBER = 69;
     uint public constant MAX_POWERBALL_NUMBER = 26;
+    uint public constant ROUND_LENGTH = 15 seconds;
 
     uint public round;
-    mapping(uint => mapping(address => uint[6][])) tickets;
     mapping(uint => Round) public rounds;
+    mapping(address => uint) public prizes;
 
     function Powerball () public {
         round = 1;
-        rounds[round].endTime = now + 3 days;
+        rounds[round].endTime = now + ROUND_LENGTH;
     }
 
-    function buy (uint[6] numbers) payable public {
-        require(msg.value == TICKET_PRICE);
-        for (uint i=0; i < 5; i++)
-            require(numbers[i] > 0);
-        for (i=0; i < 5; i++)
-            require(numbers[i] <= MAX_NUMBER);
-        require(numbers[5] <= MAX_POWERBALL_NUMBER);
+    function buy (uint[6][] numbers) payable public {
+        require(numbers.length * TICKET_PRICE == msg.value);
+
+        for (uint j=0; j < numbers.length; j++) {
+            for (uint i=0; i < 6; i++)
+                require(numbers[j][i] > 0);
+            for (i=0; i < 5; i++)
+                require(numbers[j][i] <= MAX_NUMBER);
+            require(numbers[j][5] <= MAX_POWERBALL_NUMBER);
+        }
 
         // check for round expiry
         if (now > rounds[round].endTime) {
             rounds[round].drawBlock = block.number + 5;
             round += 1;
-            rounds[round].endTime = now + 3 days;
+            rounds[round].endTime = now + ROUND_LENGTH;
         }
 
-        tickets[round][msg.sender].push(numbers);
+        for (j=0; j < numbers.length; j++)
+            rounds[round].tickets[msg.sender].push(numbers[j]);
     }
 
     function drawNumbers (uint _round) public {
         uint drawBlock = rounds[_round].drawBlock;
+        require(now > rounds[_round].endTime);
         require(block.number >= drawBlock);
         require(rounds[_round].winningNumbers[0] == 0);
 
@@ -244,7 +251,7 @@ contract Powerball {
     }
 
     function claim (uint _round) public {
-        uint[6][] storage myNumbers = tickets[_round][msg.sender];
+        uint[6][] storage myNumbers = rounds[_round].tickets[msg.sender];
         uint[6] storage winningNumbers = rounds[_round].winningNumbers;
 
         uint payout = 0;
@@ -279,6 +286,18 @@ contract Powerball {
                 payout += 4e15; // .004 ether
         }
 
+        prizes[msg.sender] += payout;
         msg.sender.transfer(payout);
+        delete rounds[_round].tickets[msg.sender];
+    }
+
+    function ticketsFor(uint _round, address user) public view 
+      returns (uint[6][] tickets) {
+        return rounds[_round].tickets[user];
+    }
+
+    function winningNumbersFor(uint _round) public view
+      returns (uint[6] winningNumbers) {
+        return rounds[_round].winningNumbers;
     }
 }
