@@ -29,8 +29,6 @@ contract('Powerball', function (accounts) {
             buys.push(tx);
         } 
         return Promise.all(buys)
-            .then(() => web3.eth.getBalance(lottery.address))
-            .then(console.log);
     });
 
     it("should wait 15 seconds", function () {
@@ -50,8 +48,6 @@ contract('Powerball', function (accounts) {
             buys.push(tx);
         } 
         return Promise.all(buys)
-            .then(() => web3.eth.getBalance(lottery.address))
-            .then(console.log);
     });
 
     it("should draw numbers", function () {
@@ -65,13 +61,6 @@ contract('Powerball', function (accounts) {
             claims.push(tx);
         }
         return Promise.all(claims)
-            .then(txs => accounts.map(a => lottery.prizes(a)))
-            .then(proms => Promise.all(proms))
-            .then(console.log)
-            .then(() => lottery.round())
-            .then(console.log)
-            .then(() => web3.eth.getBalance(lottery.address))
-            .then(console.log);
     });
 
 });

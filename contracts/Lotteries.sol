@@ -201,11 +201,10 @@ contract Powerball {
     uint public constant TICKET_PRICE = 2e15;
     uint public constant MAX_NUMBER = 69;
     uint public constant MAX_POWERBALL_NUMBER = 26;
-    uint public constant ROUND_LENGTH = 15 seconds;
+    uint public constant ROUND_LENGTH = 3 days;
 
     uint public round;
     mapping(uint => Round) public rounds;
-    mapping(address => uint) public prizes;
 
     function Powerball () public {
         round = 1;
@@ -215,12 +214,12 @@ contract Powerball {
     function buy (uint[6][] numbers) payable public {
         require(numbers.length * TICKET_PRICE == msg.value);
 
-        for (uint j=0; j < numbers.length; j++) {
-            for (uint i=0; i < 6; i++)
-                require(numbers[j][i] > 0);
-            for (i=0; i < 5; i++)
-                require(numbers[j][i] <= MAX_NUMBER);
-            require(numbers[j][5] <= MAX_POWERBALL_NUMBER);
+        for (uint i=0; i < numbers.length; i++) {
+            for (uint j=0; j < 6; j++)
+                require(numbers[i][j] > 0);
+            for (j=0; j < 5; j++)
+                require(numbers[i][j] <= MAX_NUMBER);
+            require(numbers[i][5] <= MAX_POWERBALL_NUMBER);
         }
 
         // check for round expiry
@@ -230,8 +229,8 @@ contract Powerball {
             rounds[round].endTime = now + ROUND_LENGTH;
         }
 
-        for (j=0; j < numbers.length; j++)
-            rounds[round].tickets[msg.sender].push(numbers[j]);
+        for (i=0; i < numbers.length; i++)
+            rounds[round].tickets[msg.sender].push(numbers[i]);
     }
 
     function drawNumbers (uint _round) public {
@@ -251,6 +250,9 @@ contract Powerball {
     }
 
     function claim (uint _round) public {
+        require(rounds[_round].tickets[msg.sender].length > 0);
+        require(rounds[_round].winningNumbers[0] != 0);
+
         uint[6][] storage myNumbers = rounds[_round].tickets[msg.sender];
         uint[6] storage winningNumbers = rounds[_round].winningNumbers;
 
@@ -267,7 +269,7 @@ contract Powerball {
 
             // win conditions
             if (numberMatches == 5 && powerballMatches) {
-                payout += this.balance;
+                payout = this.balance;
                 break;
             }
             else if (numberMatches == 5)
@@ -281,12 +283,11 @@ contract Powerball {
             else if (numberMatches == 3)
                 payout += 7e15; // .007 ether
             else if (numberMatches == 2 && powerballMatches)
-                payout += 4e15; // .004 ether
+                payout += 7e15; // .007 ether
             else if (powerballMatches)
                 payout += 4e15; // .004 ether
         }
 
-        prizes[msg.sender] += payout;
         msg.sender.transfer(payout);
         delete rounds[_round].tickets[msg.sender];
     }
