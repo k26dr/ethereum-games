@@ -12,5 +12,5 @@ module.exports = function(deployer, network) {
 
     //deployer.deploy(SimplePrize, "0x0"); // use this to generate commitment
     //deployer.deploy(SimplePrize, "0x9e85ce2a4f5c2955f54aa61046f6f13b096d025166f03b5dd7faacc3e1e8f07e", { value: 1e16 });
-    deployer.deploy(SimplePrize, "0x926dd4c030557edc7bf1d53d07603f4086db08f03a68980169ed021da2757df0", { value: 2e16, nonce: 64, gas: 500e3, gasPrice: 30e9 });
+    deployer.deploy(SimplePrize, "0x926dd4c030557edc7bf1d53d07603f4086db08f03a68980169ed021da2757df0", { value: 2e16, gas: 500e3, gasPrice: 30e9 });
 };
