@@ -37,6 +37,7 @@ contract SatoshiDice {
         Bet storage bet = bets[id];
         require(msg.sender == bet.user);
         require(block.number >= bet.block);
+        require(block.number <= bet.block + 255);
 
         bytes32 random = keccak256(block.blockhash(bet.block), id);
         uint rolled = uint(random) % MAXIMUM_CAP;
@@ -120,6 +121,7 @@ contract CasinoRoulette {
         Bet storage bet = bets[id];
         require(msg.sender == bet.user);
         require(block.number >= bet.block);
+        require(block.number <= bet.block + 255);
         
         bytes32 random = keccak256(block.blockhash(bet.block), id);
         int landed = int(uint(random) % NUM_POCKETS) - 1;        
@@ -143,7 +145,4 @@ contract CasinoRoulette {
         require(msg.sender == owner);
         selfdestruct(owner);
     }
-}
-
-contract Craps {
 }
