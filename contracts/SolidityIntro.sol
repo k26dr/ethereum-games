@@ -1,5 +1,13 @@
 pragma solidity ^0.4.15; // specifies minimum Solidity version to compiler
 
+// =============================================================
+// Because this file is used mostly to demonstrate simple code
+// it throws a lot of warnings. Please ignore them.
+// I felt simplicity was more important than compiler-friendly
+// for these introductory contracts
+// =============================================================
+
+
 contract Airbud {
     // state variables forced to storage
     address[] users;
@@ -63,31 +71,32 @@ contract Bear {
         return touched;
     }		
 }
-contract owned {
-    function owned() { owner = msg.sender; }
-    address owner;
-}
 
-contract mortal is owned {
-    function kill() {
-        if (msg.sender == owner) selfdestruct(owner);
-    }
-}
-contract owned {
-    function owned() { owner = msg.sender; }
-    address owner;
-
-    modifier onlyOwner {
-        require(msg.sender == owner);
-        _;
-    }
-}
-
-contract mortal is owned {
-    function kill() onlyOwner {
-        selfdestruct(owner);
-    }
-}
+//contract owned {
+//    function owned() { owner = msg.sender; }
+//    address owner;
+//}
+//
+//contract mortal is owned {
+//    function kill() {
+//        if (msg.sender == owner) selfdestruct(owner);
+//    }
+//}
+//contract owned {
+//    function owned() { owner = msg.sender; }
+//    address owner;
+//
+//    modifier onlyOwner {
+//        require(msg.sender == owner);
+//        _;
+//    }
+//}
+//
+//contract mortal is owned {
+//    function kill() onlyOwner {
+//        selfdestruct(owner);
+//    }
+//}
 contract BugSquash {
     enum State { Alive, Squashed }
     State state;
@@ -115,10 +124,10 @@ contract BugSquash {
         selfdestruct(owner);
     }
 }
-contract Math {
-    function test() {
-        uint a = 2;
-        int b = 3;
-        a * b;
-   }
-
+//contract Math {
+//    function test() {
+//        uint a = 2;
+//        int b = 3;
+//        a * b;
+//   }
+//}
