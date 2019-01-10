@@ -15,7 +15,16 @@ contract('Powerball', function (accounts) {
 
     it("should buy a ticket", function () {
         var numbers = [[1,2,3,4,5,6]];
-        lottery.buy(numbers, { from: accounts[0], value: 2e15 });
+        return lottery.buy(numbers, { from: accounts[0], value: 2e15 });
+    });
+
+    it("should fail to buy a ticket with duplicate numbers", function () {
+        var numbers = [[1,2,3,3,4,6]];
+        return new Promise(function (resolve, reject) {
+            lottery.buy(numbers, { from: accounts[0], value: 2e15 })
+                .then(reject)
+                .catch(resolve);
+        });
     });
 
     it("should buy 500 tickets from 10 accounts", function () {
@@ -67,8 +76,13 @@ contract('Powerball', function (accounts) {
 
 function generateRandomNumbers () {
     var numbers = []
-    for (var i=0; i < 5; i++) {
-        numbers.push(Math.ceil(Math.random() * 69));
+    var i=0;
+    while (i < 5) {
+        var num = Math.ceil(Math.random() * 69);
+        if (numbers.includes(num))
+            continue;
+        numbers.push(num);
+        i++;
     }
     numbers.push(Math.ceil(Math.random() * 26));
     return numbers;

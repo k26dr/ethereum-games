@@ -201,7 +201,7 @@ contract Powerball {
     uint public constant TICKET_PRICE = 2e15;
     uint public constant MAX_NUMBER = 69;
     uint public constant MAX_POWERBALL_NUMBER = 26;
-    uint public constant ROUND_LENGTH = 3 days;
+    uint public constant ROUND_LENGTH = 15 seconds;
 
     uint public round;
     mapping(uint => Round) public rounds;
@@ -213,9 +213,19 @@ contract Powerball {
 
     function buy (uint[6][] numbers) payable public {
         require(numbers.length * TICKET_PRICE == msg.value);
+    
+        // Ensure the non-powerball numbers on each ticket are unique
+        for (uint k=0; k < numbers.length; k++) {
+            for (uint i=0; i < 4; i++) {
+                for (uint j=i+1; j < 5; j++) {
+                    require(numbers[k][i] != numbers[k][j]);
+                }
+            }
+        }
 
-        for (uint i=0; i < numbers.length; i++) {
-            for (uint j=0; j < 6; j++)
+        // Ensure the picked numbers are within the acceptable range
+        for (i=0; i < numbers.length; i++) {
+            for (j=0; j < 6; j++)
                 require(numbers[i][j] > 0);
             for (j=0; j < 5; j++)
                 require(numbers[i][j] <= MAX_NUMBER);
@@ -239,12 +249,28 @@ contract Powerball {
         require(block.number >= drawBlock);
         require(rounds[_round].winningNumbers[0] == 0);
 
-        for (uint i=0; i < 5; i++) {
-            bytes32 rand = keccak256(block.blockhash(drawBlock), i);
-            uint numberDraw = uint(rand) % MAX_NUMBER + 1;
+        uint i = 0;
+        uint seed = 0;
+        while (i < 5) {
+            bytes32 rand = keccak256(block.blockhash(drawBlock), seed);
+            uint numberDraw = uint(rand) % MAX_NUMBER + 1;  
+
+            // non-powerball numbers must be unique
+            bool duplicate = false;
+            for (uint j=0; j < i; j++) {
+                if (numberDraw == rounds[_round].winningNumbers[j]) {
+                    duplicate = true;
+                    seed++;
+                    break;
+                }
+            }
+            if (duplicate)
+                continue;
+
             rounds[_round].winningNumbers[i] = numberDraw;
+            i++; seed++;
         }
-        rand = keccak256(block.blockhash(drawBlock), uint(5));
+        rand = keccak256(block.blockhash(drawBlock), seed);
         uint powerballDraw = uint(rand) % MAX_POWERBALL_NUMBER + 1;
         rounds[_round].winningNumbers[5] = powerballDraw;
     }
